@@ -7,6 +7,7 @@ import (
 	"serverless/dtos"
 	"serverless/handlers/auth"
 	"serverless/middleware"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -22,11 +23,17 @@ func main() {
 	app := app.NewApp(driver, dsn)
 
 	lambda.Start(func(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-		switch request.RawPath {
+		route := strings.TrimPrefix(request.RawPath, "/prod")
+		switch route{
 		case auth.RegisterRoute:
 			return middleware.ValidationPipeline(app.ApiHandler.HandleRegister, &dtos.UserRegisterDto{})(request)
 		case auth.LoginRoute:
 			return app.ApiHandler.HandleLogin(request)
+		case "/health-check":
+			return events.APIGatewayV2HTTPResponse{
+				StatusCode: 200,
+				Body: "Running",
+			}, nil
 		default:
 			return events.APIGatewayV2HTTPResponse{
 				StatusCode: 404,
