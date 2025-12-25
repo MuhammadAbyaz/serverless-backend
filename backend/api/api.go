@@ -21,6 +21,7 @@ func NewApiHandler(dbInstance *interfaces.IDbInstance) *ApiHandler {
 	}
 }
 
+
 func (api ApiHandler) HandleRegister(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	return auth.Register(request, api.UserRepository)
 }

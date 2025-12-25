@@ -4,7 +4,9 @@ import (
 	"context"
 	"os"
 	"serverless/app"
+	"serverless/dtos"
 	"serverless/handlers/auth"
+	"serverless/middleware"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,10 +21,10 @@ func main() {
 	})
 	app := app.NewApp(driver, dsn)
 
-	lambda.Start(func (ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	lambda.Start(func(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 		switch request.RawPath {
 		case auth.RegisterRoute:
-			return app.ApiHandler.HandleRegister(request)
+			return middleware.ValidationPipeline(app.ApiHandler.HandleRegister, &dtos.UserRegisterDto{})(request)
 		case auth.LoginRoute:
 			return app.ApiHandler.HandleLogin(request)
 		default:
